@@ -10,8 +10,6 @@
 // default.settings.php file.
 //
 // See https://api.drupal.org/api/drupal/sites!default!default.settings.php/8
-$databases = [];
-$config_directories = [];
 $settings['update_free_access'] = FALSE;
 $settings['container_yamls'][] = $app_root . '/' . $site_path . '/services.yml';
 $settings['file_scan_ignore_directories'] = [
