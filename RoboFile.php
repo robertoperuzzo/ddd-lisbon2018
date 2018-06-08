@@ -10,7 +10,7 @@ class RoboFile extends \Robo\Tasks
   /**
    * Set up the local dev environment ready to start working on.
    */
-  public function makeup() {
+  public function build() {
     /*
      * @todo
      *  - check if containers are already running.
