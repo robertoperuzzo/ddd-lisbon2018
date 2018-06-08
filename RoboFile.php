@@ -17,12 +17,14 @@ class RoboFile extends \Robo\Tasks
      *  - if task fails stop running next tasks.
      */
 
+    // Drupal init.
     $this->taskExecStack()
       ->stopOnFail()
       ->exec('make up')
       ->exec('docker-compose exec --user 82 php drupal init --destination=/var/www/html/console/ --no-interaction')
       ->run();
 
+    // Local settings.
     $this->taskFilesystemStack()
       ->stopOnFail()
       ->chmod('web/sites/default', 0755)
@@ -30,24 +32,19 @@ class RoboFile extends \Robo\Tasks
       ->chmod('web/sites/default', 0555)
       ->run();
 
-    /*
-     * @todo
-     * Installation completes, but http://drupal.docker.localhost:8000/ returns message
-     * 'The website encountered an unexpected error. Please try again later.'
-     */
+    // Drupal install.
     $this->taskExecStack()
       ->exec('docker-compose exec --user 82 php drupal site:install --force --no-interaction')
       ->run();
 
+    // Remove database settings from settings.php.
     $this->taskFilesystemStack()
       ->chmod('web/sites/default/settings.php', 0644)
       ->run();
-
     $this->taskReplaceInFile('web/sites/default/settings.php')
       ->regex('/\$databases\[([.\S\s]*)\);/i')
       ->to('')
       ->run();
-
     $this->taskFilesystemStack()
       ->chmod('web/sites/default/settings.php', 0444)
       ->run();
@@ -68,10 +65,18 @@ class RoboFile extends \Robo\Tasks
   }
 
   /**
-   * Remove docker containers.
+   * Clean local environment.
    */
   public function prune() {
-    $this->_exec('make prune');
+
+    // Drop tables form database and remove docker containers.
+    $this->taskExecStack()
+      ->stopOnFail()
+      ->exec('docker-compose exec --user 82 php drush sql-drop -y')
+      ->exec('make prune')
+      ->run();
+
+    // Remove settings.local.php symbolic link.
     $this->taskFilesystemStack()
       ->stopOnFail()
       ->chmod('web/sites/default', 0755)
