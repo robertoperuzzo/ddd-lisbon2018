@@ -16,3 +16,8 @@ $config['config_split.config_split.blacklist']['status'] = TRUE;
 $config['config_split.config_split.dev']['status'] = TRUE;
 $config['config_split.config_split.stage']['status'] = TRUE;
 $config['config_split.config_split.config_live']['status'] = FALSE;
+
+// Trusted hosts.
+$settings['trusted_host_patterns'] = [
+  '^ddd18\.docker\.localhost$',
+];

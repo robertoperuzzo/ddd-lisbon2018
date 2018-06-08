@@ -20,8 +20,14 @@ class RoboFile extends \Robo\Tasks
     $this->taskExecStack()
       ->stopOnFail()
       ->exec('make up')
-      ->exec('docker-compose exec --user 82 php drupal init --destination=/var/www/html/console/ --autocomplete')
-      ->exec('cp -f ./settings.local.php ./web/sites/default/settings.local.php')
+      ->exec('docker-compose exec --user 82 php drupal init --destination=/var/www/html/console/ --no-interaction')
+      ->run();
+
+    $this->taskFilesystemStack()
+      ->stopOnFail()
+      ->chmod('web/sites/default', 0755)
+      ->symlink('../../../settings.local.php', 'web/sites/default/settings.local.php')
+      ->chmod('web/sites/default', 0555)
       ->run();
 
     /*
@@ -30,19 +36,21 @@ class RoboFile extends \Robo\Tasks
      * 'The website encountered an unexpected error. Please try again later.'
      */
     $this->taskExecStack()
-      ->stopOnFail()
       ->exec('docker-compose exec --user 82 php drupal site:install --force --no-interaction')
       ->run();
 
+    $this->taskFilesystemStack()
+      ->chmod('web/sites/default/settings.php', 0644)
+      ->run();
 
-    /*
-     * @todo
-     * Class ResourceWatcher not found. Please install henrikbjorn/lurker Composer package
-     */
-//    $this->taskWatch()
-//      ->monitor('settings.local.php', function() {
-//        $this->_exec('cp -f ./settings.local.php ./web/sites/default/settings.local.php');
-//      })->run();
+    $this->taskReplaceInFile('web/sites/default/settings.php')
+      ->regex('/\$databases\[([.\S\s]*)\);/i')
+      ->to('')
+      ->run();
+
+    $this->taskFilesystemStack()
+      ->chmod('web/sites/default/settings.php', 0444)
+      ->run();
   }
 
   /**
@@ -64,6 +72,26 @@ class RoboFile extends \Robo\Tasks
    */
   public function prune() {
     $this->_exec('make prune');
+    $this->taskFilesystemStack()
+      ->stopOnFail()
+      ->chmod('web/sites/default', 0755)
+      ->remove('web/sites/default/settings.local.php')
+      ->chmod('web/sites/default', 0555)
+      ->run();
+  }
+
+  /**
+   * Drupal core update.
+   *
+   * @command core-update
+   */
+  public function drupalCoreUpdate() {
+    $this->taskExecStack()
+      ->stopOnFail()
+      ->exec('docker-compose exec --user 82 php composer update drupal/core --with-dependencies')
+      ->exec('docker-compose exec --user 82 php drush updatedb -y')
+      ->exec('docker-compose exec --user 82 php drush cr')
+      ->run();
   }
 
 }
