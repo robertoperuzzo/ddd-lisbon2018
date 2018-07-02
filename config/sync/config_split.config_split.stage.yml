@@ -1,0 +1,14 @@
+uuid: f0b46be7-afe7-41be-83e3-3ed1ababc687
+langcode: en
+status: true
+dependencies: {  }
+id: stage
+label: stage
+folder: ../config/splits/stage
+module: {  }
+theme: {  }
+blacklist: {  }
+graylist: {  }
+graylist_dependents: true
+graylist_skip_equal: true
+weight: 0
