@@ -21,6 +21,7 @@ class RoboFile extends \Robo\Tasks
     $this->taskExecStack()
       ->stopOnFail()
       ->exec('make up')
+      ->exec('docker-compose exec --user 82 php composer install')
       ->exec('docker-compose exec --user 82 php drupal init --destination=/var/www/html/console/ --no-interaction')
       ->run();
 
@@ -48,6 +49,17 @@ class RoboFile extends \Robo\Tasks
     $this->taskFilesystemStack()
       ->chmod('web/sites/default/settings.php', 0444)
       ->run();
+
+
+
+    // Import configuration
+//    $this->taskExecStack()
+//      ->stopOnFail()
+//      //->exec('make drush cset system.site uuid 71b4bfb2-b7eb-4a4b-b513-98cf42d112be')
+//      //->exec('docker-compose exec --user 82 php drupal config:import --no-interaction')
+//      //->exec('make drush "drush ev \'\Drupal::entityManager()->getStorage(\"shortcut_set\")->load(\"default\")->delete();\'"')
+//      //->exec('make drush "cim -y"')
+//      ->run();
   }
 
   /**
@@ -72,7 +84,7 @@ class RoboFile extends \Robo\Tasks
     // Drop tables form database and remove docker containers.
     $this->taskExecStack()
       ->stopOnFail()
-      ->exec('docker-compose exec --user 82 php drush sql-drop -y')
+      ->exec('make drush "sql-drop -y"')
       ->exec('make prune')
       ->run();
 
