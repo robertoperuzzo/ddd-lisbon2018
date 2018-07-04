@@ -35,7 +35,9 @@ class RoboFile extends \Robo\Tasks
 
     // Drupal install.
     $this->taskExecStack()
+      ->stopOnFail()
       ->exec('docker-compose exec --user 82 php drupal site:install --force --no-interaction')
+      ->exec('make drush cr')
       ->run();
 
     // Remove database settings from settings.php.
